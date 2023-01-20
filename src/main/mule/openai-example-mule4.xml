@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:openai="http://www.mulesoft.org/schema/mule/openai"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/openai http://www.mulesoft.org/schema/mule/openai/current/mule-openai.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+<openai:config name="OpenAI_Config" doc:name="OpenAI Config" doc:id="d8c1d235-7a10-4098-b414-f0b63dd9ab05" >
+		<openai:connection apiKey="${openai.apikey}"/>
+	</openai:config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="cb260967-3b53-4499-8273-72f37c33e7ac" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="389e3171-b919-487d-a849-4ca8ea7ea38e" file="mule-properties.yaml" />
+	<flow name="chatgpt-project-mule4Flow1" doc:id="21152638-2782-41e5-8f78-6692e78c77de" >
+		<http:listener doc:name="Listener" doc:id="6a1e6f0c-3574-44e8-8e3d-b658a69d29df" config-ref="HTTP_Listener_config" path="/image"/>
+		<openai:create-image-file doc:name="Create Image File" doc:id="b64450f1-0849-49b5-a1a5-96ed1177c74d" config-ref="OpenAI_Config" prompt='#["penguin"]'/>
+		<ee:transform doc:name="Transform Message" doc:id="7b2ce421-1231-46d1-8533-e1ed5a37eb8c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output application/octet-stream
+---
+fromBase64(payload)
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Write" doc:id="82fc3ec0-529c-4dff-b18f-955d6ee49c0c" path="/Users/djuang/Desktop/image.png"/>
+	</flow>
+	<flow name="chatgpt-project-mule4Flow2" doc:id="bd8cd12b-f671-4920-90b5-506053c2179d" >
+		<http:listener doc:name="Listener" doc:id="1df51acd-9615-4ad4-8d43-ae456ad830e1" config-ref="HTTP_Listener_config" path="/url"/>
+		<openai:create-image-url doc:name="Create Image URL" doc:id="2086c2b7-4450-434a-99d4-0ef0f1c5ccbd" config-ref="OpenAI_Config" prompt='#["elephant wearing red shoes"]'/>
+		<http:request method="GET" doc:name="Request" doc:id="94eaddf6-d804-4238-8f8d-7d1b75f2652b" url="#[payload]"/>
+	</flow>
+	<flow name="chatgpt-project-mule4Flow" doc:id="c1a4874e-2aae-4636-b66d-dd1dd15ce581" >
+		<http:listener doc:name="Listener" doc:id="f91f250f-b29b-4159-84d3-02e350eeab8d" config-ref="HTTP_Listener_config" path="/test"/>
+		<openai:create-completion doc:name="Create Completion" doc:id="d3263db0-a9a4-4abd-b857-5cdf2062b473" config-ref="OpenAI_Config" prompt='#[payload default "Somebody once told me the world is gonna roll me"]' model="ada"/>
+		<ee:transform doc:name="Transform Message" doc:id="362992a6-49ce-4a1b-b25a-3e0b3377c4e1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
