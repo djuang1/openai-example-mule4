@@ -29,6 +29,9 @@
 				<artifactId>mule-maven-plugin</artifactId>
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
+				<configuration>
+					<classifier>mule-application</classifier>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
@@ -47,9 +50,9 @@
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
-			<groupId>com.dejim</groupId>
+			<groupId>com.mulesoft.platform_se</groupId>
 			<artifactId>openai</artifactId>
-			<version>1.0.12-SNAPSHOT</version>
+			<version>1.0.7</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
