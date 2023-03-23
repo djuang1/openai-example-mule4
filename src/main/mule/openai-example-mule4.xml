@@ -1,13 +1,14 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<!-- [STUDIO:"Create Completion"]<?xml version="1.0" encoding="UTF-8"?> [STUDIO] -->
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns:openai="http://www.mulesoft.org/schema/mule/openai"
-	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:openai="http://www.mulesoft.org/schema/mule/openai" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/openai http://www.mulesoft.org/schema/mule/openai/current/mule-openai.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
 <openai:config name="OpenAI_Config" doc:name="OpenAI Config" doc:id="d8c1d235-7a10-4098-b414-f0b63dd9ab05" >
 		<openai:connection apiKey="${openai.apikey}"/>
 	</openai:config>
@@ -15,12 +16,85 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
 	<configuration-properties doc:name="Configuration properties" doc:id="389e3171-b919-487d-a849-4ca8ea7ea38e" file="mule-properties.yaml" />
-	<flow name="chatgpt-project-mule4Flow1" doc:id="21152638-2782-41e5-8f78-6692e78c77de" >
+	<flow name="chatCompletionFlow" doc:id="2994b726-e198-48fa-a2e4-fc5f24c91494">
+		<http:listener doc:name="Listener" doc:id="edfd7378-c830-43e5-9269-d4c129eae0d7" config-ref="HTTP_Listener_config" path="/chat" />
+		<openai:create-chat-completion doc:name="Create chat completion" doc:id="384e351b-925d-41b3-bd96-4916715375b7" config-ref="OpenAI_Config" model="gpt-3.5-turbo">
+			<openai:messages><![CDATA[#[output application/java
+---
+[{
+	role: "user",
+	content: "Hello!"
+}]]]]></openai:messages>
+			<openai:logit-biases><![CDATA[#[output application/java
+---
+[
+	{
+		tokenId: "30",
+		biasValue: -100
+	}
+]]]]></openai:logit-biases>
+		</openai:create-chat-completion>
+		<ee:transform doc:name="Transform Message" doc:id="f9afacf2-a9fa-4b9b-9f18-4cf06305f55c">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="completionFlow" doc:id="c1a4874e-2aae-4636-b66d-dd1dd15ce581">
+		<http:listener doc:name="Listener" doc:id="f91f250f-b29b-4159-84d3-02e350eeab8d" config-ref="HTTP_Listener_config" path="/completion" />
+		<openai:create-completion doc:name="Create completion" doc:id="d3263db0-a9a4-4abd-b857-5cdf2062b473" config-ref="OpenAI_Config" model="text-davinci-003" maxTokens="7" temperature="0">
+			<openai:prompt><![CDATA[Say this is a test]]></openai:prompt>
+			<openai:logit-biases><![CDATA[#[output application/java
+---
+[{
+	tokenId: "1332",
+	biasValue: -100
+},{
+	tokenId: "257",
+	biasValue: -100
+}]]]]></openai:logit-biases>
+
+		</openai:create-completion>
+		<ee:transform doc:name="Transform Message" doc:id="362992a6-49ce-4a1b-b25a-3e0b3377c4e1">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="embeddingsFlow" doc:id="931462c1-43f7-4d95-969c-9d5a8c73a163">
+		<http:listener doc:name="Listener" doc:id="cc8ecd3e-e99d-4139-aca1-e7b8ea30de5d" config-ref="HTTP_Listener_config" path="/embeddings" />
+		<openai:create-embeddings doc:name="Create embeddings" doc:id="6b8e92e5-df0f-4f85-b8b5-b373b45a87f6" config-ref="OpenAI_Config" model="text-embedding-ada-002">
+			<openai:inputs><![CDATA[#[output application/java
+---
+[
+	"The food was delicious and the waiter...",
+	"How are you?"
+]]]]></openai:inputs>
+		</openai:create-embeddings>
+		<ee:transform doc:name="Transform Message" doc:id="356f6c6f-ba3b-4e89-a93e-409147b37f5d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="imageFileFlow" doc:id="21152638-2782-41e5-8f78-6692e78c77de" >
 		<http:listener doc:name="Listener" doc:id="6a1e6f0c-3574-44e8-8e3d-b658a69d29df" config-ref="HTTP_Listener_config" path="/image"/>
-		<openai:create-image-file doc:name="Create Image File" doc:id="b64450f1-0849-49b5-a1a5-96ed1177c74d" config-ref="OpenAI_Config" prompt='#["penguin"]'/>
-		<ee:transform doc:name="Transform Message" doc:id="7b2ce421-1231-46d1-8533-e1ed5a37eb8c" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+		<openai:create-image-file doc:name="Create image file" doc:id="b64450f1-0849-49b5-a1a5-96ed1177c74d" config-ref="OpenAI_Config" n="2" size="256x256">
+			<openai:prompt ><![CDATA[Penguin]]></openai:prompt>
+		</openai:create-image-file>
+		<foreach doc:name="For Each" doc:id="5e62a8fc-0548-4832-b85b-b82733673c4d">
+			<ee:transform doc:name="Transform Message" doc:id="7b2ce421-1231-46d1-8533-e1ed5a37eb8c">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
 import * from dw::core::Binaries
 output application/octet-stream
 ---
@@ -28,23 +102,14 @@ fromBase64(payload)
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<file:write doc:name="Write" doc:id="82fc3ec0-529c-4dff-b18f-955d6ee49c0c" path="/Users/djuang/Desktop/image.png"/>
+			<file:write doc:name="Write" doc:id="82fc3ec0-529c-4dff-b18f-955d6ee49c0c" path='#["C:\image-" ++ vars.counter ++ ".png"]' />
+		</foreach>
 	</flow>
-	<flow name="chatgpt-project-mule4Flow2" doc:id="bd8cd12b-f671-4920-90b5-506053c2179d" >
+	<flow name="imageUrlFlow" doc:id="bd8cd12b-f671-4920-90b5-506053c2179d" >
 		<http:listener doc:name="Listener" doc:id="1df51acd-9615-4ad4-8d43-ae456ad830e1" config-ref="HTTP_Listener_config" path="/url"/>
-		<openai:create-image-url doc:name="Create Image URL" doc:id="2086c2b7-4450-434a-99d4-0ef0f1c5ccbd" config-ref="OpenAI_Config" prompt='#["elephant wearing red shoes"]'/>
-		<http:request method="GET" doc:name="Request" doc:id="94eaddf6-d804-4238-8f8d-7d1b75f2652b" url="#[payload]"/>
-	</flow>
-	<flow name="chatgpt-project-mule4Flow" doc:id="c1a4874e-2aae-4636-b66d-dd1dd15ce581" >
-		<http:listener doc:name="Listener" doc:id="f91f250f-b29b-4159-84d3-02e350eeab8d" config-ref="HTTP_Listener_config" path="/test"/>
-		<openai:create-completion doc:name="Create Completion" doc:id="d3263db0-a9a4-4abd-b857-5cdf2062b473" config-ref="OpenAI_Config" prompt='#[payload default "Somebody once told me the world is gonna roll me"]' model="ada"/>
-		<ee:transform doc:name="Transform Message" doc:id="362992a6-49ce-4a1b-b25a-3e0b3377c4e1" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-payload]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
+		<openai:create-image-url doc:name="Create image url" doc:id="2086c2b7-4450-434a-99d4-0ef0f1c5ccbd" config-ref="OpenAI_Config" size="256x256">
+			<openai:prompt ><![CDATA[elephant wearing red shoes]]></openai:prompt>
+		</openai:create-image-url>
+		<http:request method="GET" doc:name="Request" doc:id="94eaddf6-d804-4238-8f8d-7d1b75f2652b" url="#[payload[0]]"/>
 	</flow>
 </mule>
