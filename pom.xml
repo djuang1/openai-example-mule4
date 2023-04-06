@@ -47,9 +47,9 @@
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
-			<groupId>com.dejim</groupId>
+			<groupId>com.mulesoft.platform_se</groupId>
 			<artifactId>openai</artifactId>
-			<version>1.0.12-SNAPSHOT</version>
+			<version>1.0.15</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
