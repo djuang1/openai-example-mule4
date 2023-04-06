@@ -45,10 +45,11 @@ payload]]></ee:set-payload>
 	</flow>
 	<flow name="completionFlow" doc:id="c1a4874e-2aae-4636-b66d-dd1dd15ce581">
 		<http:listener doc:name="/completion" doc:id="f91f250f-b29b-4159-84d3-02e350eeab8d" config-ref="HTTP_Listener_config" path="/completion" />
-		<openai:create-completion model="text-davinci-003" doc:name="Create completion" doc:id="092cba0a-c505-472e-a0fb-979dd0d83238" config-ref="OpenAI_Config" maxTokens="7" temperature="0">
-			<openai:prompt ><![CDATA[#[output application/json
+		<openai:create-completion model="text-ada-001" doc:name="Create completion" doc:id="092cba0a-c505-472e-a0fb-979dd0d83238" config-ref="OpenAI_Config" maxTokens="7" temperature="0">
+			<openai:prompt ><![CDATA[#["Hello, how are"]]]></openai:prompt>
+			<openai:stops ><![CDATA[#[output application/java
 ---
-"Hello, how are "]]]></openai:prompt>
+["stop"]]]]></openai:stops>
 		</openai:create-completion>
 		<ee:transform doc:name="Transform Message" doc:id="362992a6-49ce-4a1b-b25a-3e0b3377c4e1">
 			<ee:message>
