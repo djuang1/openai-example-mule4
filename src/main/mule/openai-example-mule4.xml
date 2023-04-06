@@ -44,19 +44,11 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="completionFlow" doc:id="c1a4874e-2aae-4636-b66d-dd1dd15ce581">
-		<http:listener doc:name="Listener" doc:id="f91f250f-b29b-4159-84d3-02e350eeab8d" config-ref="HTTP_Listener_config" path="/completion" />
-		<openai:create-completion doc:name="Create completion" doc:id="d3263db0-a9a4-4abd-b857-5cdf2062b473" config-ref="OpenAI_Config" model="text-davinci-003" maxTokens="7" temperature="0">
-			<openai:prompt><![CDATA[Say this is a test]]></openai:prompt>
-			<openai:logit-biases><![CDATA[#[output application/java
+		<http:listener doc:name="/completion" doc:id="f91f250f-b29b-4159-84d3-02e350eeab8d" config-ref="HTTP_Listener_config" path="/completion" />
+		<openai:create-completion model="text-davinci-003" doc:name="Create completion" doc:id="092cba0a-c505-472e-a0fb-979dd0d83238" config-ref="OpenAI_Config" maxTokens="7" temperature="0">
+			<openai:prompt ><![CDATA[#[output application/json
 ---
-[{
-	tokenId: "1332",
-	biasValue: -100
-},{
-	tokenId: "257",
-	biasValue: -100
-}]]]]></openai:logit-biases>
-
+"Hello, how are "]]]></openai:prompt>
 		</openai:create-completion>
 		<ee:transform doc:name="Transform Message" doc:id="362992a6-49ce-4a1b-b25a-3e0b3377c4e1">
 			<ee:message>
@@ -107,9 +99,17 @@ fromBase64(payload)
 	</flow>
 	<flow name="imageUrlFlow" doc:id="bd8cd12b-f671-4920-90b5-506053c2179d" >
 		<http:listener doc:name="Listener" doc:id="1df51acd-9615-4ad4-8d43-ae456ad830e1" config-ref="HTTP_Listener_config" path="/url"/>
-		<openai:create-image-url doc:name="Create image url" doc:id="2086c2b7-4450-434a-99d4-0ef0f1c5ccbd" config-ref="OpenAI_Config" size="256x256">
+		<openai:create-image-url doc:name="Create image url" doc:id="b8735338-27f4-4249-891a-ba47c37e380f" config-ref="OpenAI_Config">
 			<openai:prompt ><![CDATA[elephant wearing red shoes]]></openai:prompt>
 		</openai:create-image-url>
-		<http:request method="GET" doc:name="Request" doc:id="94eaddf6-d804-4238-8f8d-7d1b75f2652b" url="#[payload[0]]"/>
+		<ee:transform doc:name="Transform Message" doc:id="b0d81947-1117-4d0b-a9fd-82b3d0282580" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload.data[0].url]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="94eaddf6-d804-4238-8f8d-7d1b75f2652b" url="#[payload]"/>
 	</flow>
 </mule>
