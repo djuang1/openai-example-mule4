@@ -16,6 +16,9 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
 	<configuration-properties doc:name="Configuration properties" doc:id="389e3171-b919-487d-a849-4ca8ea7ea38e" file="mule-properties.yaml" />
+	<file:config name="File_Config" doc:name="File Config" doc:id="a619abaf-988b-4bc9-bca4-70a72729214c" >
+		<file:connection workingDir="/temp/gptimages/"/>
+	</file:config>
 	<flow name="chatCompletionFlow" doc:id="2994b726-e198-48fa-a2e4-fc5f24c91494">
 		<http:listener doc:name="Listener" doc:id="edfd7378-c830-43e5-9269-d4c129eae0d7" config-ref="HTTP_Listener_config" path="/chat" />
 		<openai:create-chat-completion doc:name="Create chat completion" doc:id="384e351b-925d-41b3-bd96-4916715375b7" config-ref="OpenAI_Config" model="gpt-3.5-turbo">
@@ -23,7 +26,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 ---
 [{
 	role: "user",
-	content: "Hello!"
+	content: attributes.queryParams.content default 'hello'
 }]]]]></openai:messages>
 			<openai:logit-biases><![CDATA[#[output application/java
 ---
@@ -81,8 +84,8 @@ payload]]></ee:set-payload>
 	</flow>
 	<flow name="imageFileFlow" doc:id="21152638-2782-41e5-8f78-6692e78c77de" >
 		<http:listener doc:name="Listener" doc:id="6a1e6f0c-3574-44e8-8e3d-b658a69d29df" config-ref="HTTP_Listener_config" path="/image"/>
-		<openai:create-image-file doc:name="Create image file" doc:id="b64450f1-0849-49b5-a1a5-96ed1177c74d" config-ref="OpenAI_Config" n="2" size="256x256">
-			<openai:prompt ><![CDATA[Penguin]]></openai:prompt>
+		<openai:create-image-file doc:name="Create image file" doc:id="b64450f1-0849-49b5-a1a5-96ed1177c74d" config-ref="OpenAI_Config" n="5">
+			<openai:prompt ><![CDATA[#[attributes.queryParams.image default 'penguin flying']]]></openai:prompt>
 		</openai:create-image-file>
 		<foreach doc:name="For Each" doc:id="5e62a8fc-0548-4832-b85b-b82733673c4d">
 			<ee:transform doc:name="Transform Message" doc:id="7b2ce421-1231-46d1-8533-e1ed5a37eb8c">
@@ -95,13 +98,14 @@ fromBase64(payload)
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-			<file:write doc:name="Write" doc:id="82fc3ec0-529c-4dff-b18f-955d6ee49c0c" path='#["C:\image-" ++ vars.counter ++ ".png"]' />
+			<file:write doc:name="Write" doc:id="82fc3ec0-529c-4dff-b18f-955d6ee49c0c" path='#["image-" ++ vars.counter ++ ".png"]' config-ref="File_Config"/>
 		</foreach>
 	</flow>
 	<flow name="imageUrlFlow" doc:id="bd8cd12b-f671-4920-90b5-506053c2179d" >
 		<http:listener doc:name="Listener" doc:id="1df51acd-9615-4ad4-8d43-ae456ad830e1" config-ref="HTTP_Listener_config" path="/url"/>
+		<logger level="INFO" doc:name="Logger" doc:id="1b6d5843-c5f5-4734-8dd6-b2ddcb91c3e3" message="#[attributes.queryParms.image]"/>
 		<openai:create-image-url doc:name="Create image url" doc:id="b8735338-27f4-4249-891a-ba47c37e380f" config-ref="OpenAI_Config">
-			<openai:prompt ><![CDATA[elephant wearing red shoes]]></openai:prompt>
+			<openai:prompt ><![CDATA[#[attributes.queryParams.image default 'computer nerd working hard']]]></openai:prompt>
 		</openai:create-image-url>
 		<ee:transform doc:name="Transform Message" doc:id="b0d81947-1117-4d0b-a9fd-82b3d0282580" >
 			<ee:message >
@@ -111,6 +115,7 @@ output application/java
 payload.data[0].url]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="2f407195-ca80-4159-83c1-22ec0c239f9d" message="#[payload]"/>
 		<http:request method="GET" doc:name="Request" doc:id="94eaddf6-d804-4238-8f8d-7d1b75f2652b" url="#[payload]"/>
 	</flow>
 </mule>
