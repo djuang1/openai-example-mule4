@@ -1,0 +1,116 @@
+{
+	"info": {
+		"_postman_id": "1c1ae5bf-5e9b-46e6-9cb9-28c52312ead3",
+		"name": "Mule OpenAI Connector",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "715048"
+	},
+	"item": [
+		{
+			"name": "example app",
+			"item": [
+				{
+					"name": "/chat",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/chat",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"chat"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/completion",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/completion",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"completion"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/embeddings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/embeddings",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"embeddings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/image",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/image",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"image"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/url",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/url?image=baby ducks",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"url"
+							],
+							"query": [
+								{
+									"key": "image",
+									"value": "baby ducks"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
